@@ -19,6 +19,7 @@ from ..utils.exceptions_utils import test_exceptions as texc
 from ..utils.logging import make_temp_dir
 from ..utils.terminal import run_command_check_output
 from ..core.session import Session
+from ..utils.conda import SimpleConda
 from ..default import INFORMATION_FILE
 from ..default import EOS
 
@@ -530,6 +531,8 @@ class ModelTester(ErsiliaBase):
     
     @staticmethod
     def get_directory_size_without_symlinks(directory):
+        if directory is None:
+            return 0
         if not os.path.exists(directory):
             return 0
         total_size = 0
@@ -540,18 +543,47 @@ class ModelTester(ErsiliaBase):
                     total_size += os.path.getsize(filepath)
         return total_size
 
+    @staticmethod
+    def get_directory_size_with_symlinks(directory):
+        if directory is None:
+            return 0
+        if not os.path.exists(directory):
+            return 0
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk(directory):
+            for filename in filenames:
+                filepath = os.path.join(dirpath, filename)
+                total_size += os.path.getsize(filepath)
+        return total_size
+
+    def _get_environment_location(self):
+        conda = SimpleConda()
+        python_path = conda.get_python_path_env(environment=self.model_id)
+        env_dir = os.path.dirname(python_path).split("/")
+        env_dir = "/".join(env_dir[:-1])
+        return env_dir
+
     @throw_ersilia_exception
     def get_directories_sizes(self):
         dest_dir = self._model_path(model_id=self.model_id)
         bundle_dir = self._get_bundle_location(model_id=self.model_id)
         bentoml_dir = self._get_bentoml_location(model_id=self.model_id)
-        #env_dir = self._get_environment_location()
+        env_dir = self._get_environment_location()
+        print("paths")
+        print(dest_dir)
+        print(bundle_dir)
+        print(bentoml_dir)
+        print(env_dir)
         dest_size = self.get_directory_size_without_symlinks(dest_dir)
         bundle_size = self.get_directory_size_without_symlinks(bundle_dir)
         bentoml_size = self.get_directory_size_without_symlinks(bentoml_dir)
+        env_size = self.get_directory_size_with_symlinks(env_dir)
+        print("sizes")
         print(dest_size)
         print(bundle_size)
         print(bentoml_size)
+        print(env_size)
+
 
     @throw_ersilia_exception
     def run_bash(self):
