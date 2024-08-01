@@ -479,7 +479,7 @@ class ModelTester(ErsiliaBase):
         if "CONDA_DEFAULT_ENV" in os.environ:
             return os.environ["CONDA_DEFAULT_ENV"]
         else:
-            return BASE
+            return "base"
 
     @staticmethod
     def conda_prefix(is_base):
@@ -528,6 +528,25 @@ class ModelTester(ErsiliaBase):
                 data.append(dict(zip(header, values)))
         return data
     
+    @staticmethod
+    def get_directory_size_without_symlinks(directory):
+        if not os.path.exists(directory):
+            return 0
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk(directory):
+            for filename in filenames:
+                filepath = os.path.join(dirpath, filename)
+                if not os.path.islink(filepath):
+                    total_size += os.path.getsize(filepath)
+        return total_size
+
+    @throw_ersilia_exception
+    def _get_directories_sizes(self):
+        dest_dir = self._model_path(model_id=self.model_id)
+        bundle_dir = self._get_bundle_location(model_id=self.model_id)
+        bentoml_dir = self._get_bentoml_location(model_id=self.model_id)
+        
+
     @throw_ersilia_exception
     def run_bash(self):
         # NEW METHODS
