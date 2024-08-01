@@ -541,11 +541,17 @@ class ModelTester(ErsiliaBase):
         return total_size
 
     @throw_ersilia_exception
-    def _get_directories_sizes(self):
+    def get_directories_sizes(self):
         dest_dir = self._model_path(model_id=self.model_id)
         bundle_dir = self._get_bundle_location(model_id=self.model_id)
         bentoml_dir = self._get_bentoml_location(model_id=self.model_id)
-        
+        #env_dir = self._get_environment_location()
+        dest_size = self.get_directory_size_without_symlinks(dest_dir)
+        bundle_size = self.get_directory_size_without_symlinks(bundle_dir)
+        bentoml_size = self.get_directory_size_without_symlinks(bentoml_dir)
+        print(dest_size)
+        print(bundle_size)
+        print(bentoml_size)
 
     @throw_ersilia_exception
     def run_bash(self):
@@ -870,7 +876,8 @@ class ModelTester(ErsiliaBase):
         # self.check_single_input(output_file)
         # self.check_example_input(output_file)
         # self.check_consistent_output()
-        self.run_bash()
+        self.get_directories_sizes()
+        # self.run_bash()
 
         end = time.time()
         seconds_taken = end - start
